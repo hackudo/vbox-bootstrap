@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+#----------------------------------------------------
+#  Pretty
+#----------------------------------------------------
+
+  export col_x="$(tput sgr0)"
+  export col_eol="$(tput el)"
+  export col_red=$(tput setaf 9)
+  export col_yellow=$(tput setaf 11)
+  export col_orange=$(tput setaf 214)
+  export col_green=$(tput setaf 2)
+  export col_blue=$(tput setaf 12)
+  export col_purple=$(tput setaf 13)
+  export col_grey=$(tput setaf 244)
+  export col_white=$(tput setaf 15)
+
+
+#----------------------------------------------------
+#  Pretty
+#----------------------------------------------------
+
+  dest="/mnt/sda1/var/lib/boot2docker/"
+
+
+
+  dm="docker-machine"
+  name="$1"
+
+  echo "lets try! $1"
+#----------------------------------------------------
+#  Pretty
+#----------------------------------------------------
+
+	function machine_exists(){
+		[ -z "$1" ] && return 1;
+		${dm} ls -q | grep "^${1}\$"; ret=$?
+		return $ret;
+	}
+
+	function machine_running(){
+		[ -z "$1" ] && return 1;
+		res=$(${dm} status "${1}")
+		[ "$res" = "Running" ] && ret=0 || ret=1;
+		return $ret;
+	}
+
+	function scp_hack(){
+		tfile="$1"
+		scp=$(docker-machine --debug scp ./${tfile} "$name\:${tfile}" 2>&1);ret=$?
+		if [ "$ret" -eq 1 ]; then
+			"echo $scp"
+	    scp=$(echo $scp | grep scp | grep -o -P "scp.exe -o .*${tfile}")
+	    eval $scp
+		else
+		  echo $scp
+		fi
+		${dm} ssh ${name} "sudo mv /home/docker/${tfile} ${dest}/${tfile}"
+	}
+
+	function find_scripts(){
+		tfile="$1"
+		${dm} ssh ${name} "ls -la ${dest}${tfile}"; ret=$?
+		if [ $ret -eq 1 ]; then
+		  scp_hack 'bootlocal.sh'
+		  scp_hack 'bootsync.sh'
+		fi
+	}
+
+
+
+
+	#does machine name already exist
+	if ! machine_exists "$name"; then
+		${dm} create --driver virtualbox ${name}
+		sleep 1
+		echo -e "${col_purple}Attempting to copy ${name}:${dest}$col_x"
+	  scp_hack 'bootlocal.sh'
+	  scp_hack 'bootsync.sh'
+	fi
+
+	if machine_running ${name}; then
+		find_scripts 'bootlocal.sh'
+		find_scripts 'bootsync.sh'
+	fi
+
+	#machine already exists
+	if machine_exists ${name}; then
+
+		if ! machine_running ${name}; then
+			${dm} start ${name};
+			ret=$?
+		fi
+
+		if [ $ret -eq 0 ]; then
+			res=$(${dm} env ${name})
+			eval "$res"
+			export DOCKER_ACTIVE=${name}
+			${dm} ip ${name}
+		fi
+
+
+	fi
+
+
