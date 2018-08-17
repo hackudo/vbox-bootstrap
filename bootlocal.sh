@@ -13,7 +13,7 @@ cat << EOF >> /home/docker/.profile
   export PS1="\a\n\e[1;36m$LINE\n[\w]\e[m \e[1;32m\n[\u][\A]~> \e[m"
   alias lf='ls';
   alias c='clear';
-  alias l='ls -lAXpFhG --group-directories-first'
+  alias l='ls -lAXpFh --group-directories-first'
   alias rr='source ~/.profile'
   alias home="cd $HOME;l"
   alias up='cd ..;clear;lf'

@@ -7,23 +7,15 @@
   export col_x="$(tput sgr0)"
   export col_eol="$(tput el)"
   export col_red=$(tput setaf 9)
-  export col_yellow=$(tput setaf 11)
-  export col_orange=$(tput setaf 214)
   export col_green=$(tput setaf 2)
   export col_blue=$(tput setaf 12)
   export col_purple=$(tput setaf 13)
-  export col_grey=$(tput setaf 244)
-  export col_white=$(tput setaf 15)
-
 
 #----------------------------------------------------
 #  Pretty
 #----------------------------------------------------
 
   dest="/mnt/sda1/var/lib/boot2docker/"
-
-
-
   dm="docker-machine"
   name="$1"
 
